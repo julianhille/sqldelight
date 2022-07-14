@@ -1,0 +1,40 @@
+plugins {
+  alias(deps.plugins.kotlin.js)
+  alias(deps.plugins.publish)
+  alias(deps.plugins.dokka)
+}
+
+kotlin {
+
+  target {
+    nodejs {
+      testTask {
+        useMocha {
+          timeout = "5s"
+        }
+        filter.excludeTestsMatching("*JsWorker*")
+      }
+    }
+    browser {
+      testTask {
+        useKarma {
+          useChromeHeadless()
+        }
+      }
+    }
+  }
+
+  sourceSets["main"].dependencies {
+    api project(':runtime')
+    implementation deps.kotlin.coroutines.core
+  }
+  sourceSets["test"].dependencies {
+    implementation deps.kotlin.test.js
+    implementation npm('better-sqlite3-multiple-ciphers', deps.versions.sqlcipherjs.get())
+    implementation devNpm("copy-webpack-plugin", "9.1.0")
+    implementation deps.kotlin.coroutines.test
+    implementation project(':extensions:async-extensions')
+  }
+}
+
+apply from: "$rootDir/gradle/gradle-mvn-push.gradle"
